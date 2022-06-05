@@ -3,6 +3,7 @@ include config.mk
 
 export PYTHONPATH:=../../:${PYTHONPATH}
 SCRIPTS_DIR:=../../scripts
+out_dir=output
 
 # Configs files
 TOKENIZER_CONFIG = configs/tokenizers/$(tokenizer).py

@@ -56,7 +56,7 @@ config = {
     "normalizer": NormSeq([Lowercase(), Replace("10","diez")]),
 
     # Pre-tokenizer:
-    "pre-tokenizer": Whitespace(),
+    "pre_tokenizer": Whitespace(),
 
     # Tokenizer training args:
     "trainer": WordLevelTrainer(
@@ -79,6 +79,7 @@ config = {
         "padding_side": "right",
         "truncation_side": "right",
         "model_input_names": ["input_ids", "attention_mask"],
+        "unk_token": _special_tokens["unk_token"],
         "bos_token": _special_tokens["bos_token"],
         "eos_token": _special_tokens["eos_token"],
         "sep_token": _special_tokens["sep_token"],

@@ -15,7 +15,7 @@ def parse_args():
 
     # Extract config and output directory
     output_dir = args["out"]
-    config = import_configs_objs(args["config"])
+    config = import_configs_objs(args["config"])["config"]
 
     return config, output_dir
 
