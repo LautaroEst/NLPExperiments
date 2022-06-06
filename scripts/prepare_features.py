@@ -40,10 +40,11 @@ def init_features_extractor(tokenizer,**config):
 
 
 def main():
-    config, tokenizer_dir, output_dir = parse_args()
-    tokenizer = load_tokenizer(tokenizer_dir)
-    extractor = init_features_extractor(tokenizer,**config)
-    torch.save(extractor,os.path.join(output_dir,"extractor.pkl"))
+    # config, tokenizer_dir, output_dir = parse_args()
+    # tokenizer = load_tokenizer(tokenizer_dir)
+    # extractor = init_features_extractor(tokenizer,**config)
+    # torch.save(extractor,os.path.join(output_dir,"extractor.pkl"))
+    pass
     
 
     

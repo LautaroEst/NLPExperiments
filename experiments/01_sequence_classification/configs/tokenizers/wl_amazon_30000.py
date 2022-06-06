@@ -63,7 +63,7 @@ config = {
         vocab_size=30000,
         min_frequency=0,
         show_progress=True,
-        special_tokens=list(_special_tokens.keys())
+        special_tokens=list(_special_tokens.values())
     ),
 
     "corpus": HFCorpus(

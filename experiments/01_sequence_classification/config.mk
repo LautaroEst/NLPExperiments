@@ -1,6 +1,6 @@
 
-tokenizer=beto_uncased
+tokenizer=wl_amazon_30000
 features=cbow300
 data=amazon
-model=model1
-training=training1
+model=two_layer_net
+training=lr1e4_adam_e5

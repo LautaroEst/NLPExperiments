@@ -49,7 +49,7 @@ def prepare_data_for_training(
             lambda sample: preprocessing_function(sample,tokenizer),
             **config["mapping_args"]
         )
-        columns_to_remove = list(set(dataset.features.keys()) - config["columns"])
+        columns_to_remove = list(set(dataset.features.keys()) - set(config["columns"]))
         dataset = dataset.remove_columns(columns_to_remove)
         data_dict[split] = dataset
 

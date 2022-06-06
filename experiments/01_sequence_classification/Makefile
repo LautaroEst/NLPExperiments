@@ -65,15 +65,15 @@ $(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_FILE_DIR)
 		--out $(DATA_FILES_DIR)
 
 
-$(TRAINING_FILES_DIR): $(TRAINING_CONFIG) $(MODEL_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_FILES_DIR) $(DATA_FILES_DIR)
+$(TRAINING_FILES_DIR): $(TRAINING_CONFIG) $(MODEL_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_CONFIG) $(DATA_FILES_DIR)
 	rm -rf $(TRAINING_FILES_DIR)
 	mkdir -p $(TRAINING_FILES_DIR)
-	python $(SCRIPTS_DIR)/train_sequence_classification.py \
+	python $(SCRIPTS_DIR)/train_sequence_classifier.py \
 		--training_config $(TRAINING_CONFIG) \
 		--model_config $(MODEL_CONFIG) \
-		--tokenizer_files_dir $(TOKENIZER_FILES_DIR) \
-		--features_files_dir $(FEATURES_FILES_DIR) \
-		--data_files_dir $(DATA_FILES_DIR) \
+		--tokenizer_dir $(TOKENIZER_FILES_DIR) \
+		--features_config $(FEATURES_CONFIG) \
+		--data_dir $(DATA_FILES_DIR) \
 		--out $(TRAINING_FILES_DIR)
 
 
