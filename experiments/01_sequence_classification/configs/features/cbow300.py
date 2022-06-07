@@ -31,6 +31,6 @@ config = {
 
     "embeddings_dim": 300,
     "pretrained_file": None,
-    "freeze_parameters": True
+    "freeze_parameters": False
 
 }

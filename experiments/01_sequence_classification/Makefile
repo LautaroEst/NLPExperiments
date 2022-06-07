@@ -23,7 +23,7 @@ TRAINING_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(
 TOKENIZER_FILES_DIR = $(TOKENIZER_OUT_DIR)/files
 FEATURES_FILES_DIR = $(FEATURES_OUT_DIR)/files
 DATA_FILES_DIR = $(DATA_OUT_DIR)/files
-TRAINING_FILES_DIR = $(TRAINING_OUT_DIR)/files
+TRAINING_FILES_DIR = $(TRAINING_OUT_DIR)
 
 # make all performs full experiment
 all: tokenizer features data training

@@ -4,6 +4,8 @@ import torch
 from torch import nn, optim
 import torch.nn.functional as F
 import pytorch_lightning as pl
+from pytorch_lightning.loggers import TensorBoardLogger
+from pytorch_lightning.callbacks import ModelCheckpoint
 from torch.utils.data import DataLoader
 
 from transformers import AutoTokenizer
@@ -61,7 +63,8 @@ def load_data(data_dir,tokenizer,**dataloader_args):
             dataset[split],
             batch_size=dataloader_args[f"{split}_batch_size"],
             shuffle= split == "train",
-            collate_fn=lambda batch: data_collate(batch,tokenizer)
+            collate_fn=lambda batch: data_collate(batch,tokenizer),
+            num_workers=dataloader_args["num_workers"]
         )
     return dataloaders
 
@@ -76,12 +79,28 @@ def load_model(**config):
         
 
 def train_sequence_classifier(
-        features_extractor,main_model,train_dataloader,val_dataloader,**training_config
+        features_extractor,main_model,train_dataloader,val_dataloader,output_dir,**training_config
     ):
 
     full_model_class = training_config.pop("full_model_class")
     model = full_model_class(features_extractor,main_model)
-    trainer = pl.Trainer(**training_config["trainer_args"])
+
+    log_dir = "train_logs"
+    logger = TensorBoardLogger(save_dir=output_dir,name=log_dir)
+    checkpoint_callback = ModelCheckpoint(
+        dirpath=os.path.join(output_dir,log_dir,f"version_0/checkpoints"),
+        filename="{step}-{epoch}-{val_loss:.2f}",
+        monitor="val_loss",
+        save_top_k=1,
+        save_weights_only=False,
+        every_n_train_steps=training_config["trainer_args"]["val_check_interval"]
+    )
+    trainer = pl.Trainer(
+        default_root_dir=output_dir,
+        logger=logger,
+        callbacks=[checkpoint_callback],
+        **training_config["trainer_args"]
+    )
     trainer.fit(model,train_dataloader,val_dataloader)
 
     results_history = None
@@ -100,6 +119,7 @@ def main():
         main_model,
         dataloaders["train"],
         dataloaders["validation"],
+        output_dir,
         **config["training"]
     )
 
