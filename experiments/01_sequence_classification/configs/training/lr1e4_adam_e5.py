@@ -83,7 +83,6 @@ class FullModel(pl.LightningModule):
 
 config = {
 
-
     "dataloader_args": {
         "train_batch_size": 32,
         "validation_batch_size": 64,

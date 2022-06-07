@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import torch
 from torch import nn, optim
@@ -12,6 +13,9 @@ from transformers import AutoTokenizer
 from import_config import import_configs_objs
 from datasets import DatasetDict
 
+from nlp.features import load_features_extractor
+from nlp.models import load_model
+
 
 
 def parse_args():
@@ -20,8 +24,8 @@ def parse_args():
     
     # Arguments
     parser.add_argument("--tokenizer_dir",help="Directory that holds the tokenizer files")
-    parser.add_argument("--features_config",help="File with the feature extractor configuration.")
-    parser.add_argument("--model_config",help="File with the model configuration.")
+    parser.add_argument("--features_dir",help="File with the feature extractor configuration.")
+    parser.add_argument("--model_dir",help="File with the model configuration.")
     parser.add_argument("--data_dir",help="Directory that holds the preprocessed data")
     parser.add_argument("--training_config",help="File with the training configuration.")
     parser.add_argument("--out",help="Output directory")
@@ -30,9 +34,9 @@ def parse_args():
     # Process the arguments
     config = {
         "tokenizer_dir": args["tokenizer_dir"],
-        "features": import_configs_objs(args["features_config"])["config"],
+        "features_dir": args["features_dir"],
         "data_dir": args["data_dir"],
-        "model": import_configs_objs(args["model_config"])["config"],
+        "model_dir": args["model_dir"],
         "training": import_configs_objs(args["training_config"])["config"]
     }
     output_dir = args["out"]
@@ -46,10 +50,12 @@ def load_tokenizer(tokenizer_dir):
     return tokenizer
 
 
-def load_features_extractor(tokenizer,**config):
-    extractor_class = config.pop("features_extractor_class")
-    extractor = extractor_class(tokenizer,**config)
+def load_extractor(features_dir):
+    with open(os.path.join(features_dir,"params.json"),"r") as f:
+        extractor_type = json.load(f)["type"]
+    extractor = load_features_extractor(extractor_type,features_dir)
     return extractor
+
 
 def load_data(data_dir,tokenizer,**dataloader_args):
 
@@ -69,14 +75,12 @@ def load_data(data_dir,tokenizer,**dataloader_args):
     return dataloaders
 
 
-def load_model(**config):
-    model_class = config.pop("model_class")
-    model = model_class(**config)
+def load_main_model(model_dir):
+    with open(os.path.join(model_dir,"params.json"),"r") as f:
+        model_type = json.load(f)["type"]
+    model = load_model(model_type,model_dir)
     return model
 
-
-
-        
 
 def train_sequence_classifier(
         features_extractor,main_model,train_dataloader,val_dataloader,output_dir,**training_config
@@ -88,7 +92,7 @@ def train_sequence_classifier(
     log_dir = "train_logs"
     logger = TensorBoardLogger(save_dir=output_dir,name=log_dir)
     checkpoint_callback = ModelCheckpoint(
-        dirpath=os.path.join(output_dir,log_dir,f"version_0/checkpoints"),
+        dirpath=os.path.join(output_dir,log_dir,"version_0/checkpoints"),
         filename="{step}-{epoch}-{val_loss:.2f}",
         monitor="val_loss",
         save_top_k=1,
@@ -110,9 +114,9 @@ def train_sequence_classifier(
 def main():
     config, output_dir = parse_args()
     tokenizer = load_tokenizer(config["tokenizer_dir"])
-    features_extractor = load_features_extractor(tokenizer,**config["features"])
+    features_extractor = load_extractor(config["features_dir"])
+    main_model = load_main_model(config["model_dir"])
     dataloaders = load_data(config["data_dir"],tokenizer,**config["training"]["dataloader_args"])
-    main_model = load_model(**config["model"])
 
     result_history = train_sequence_classifier(
         features_extractor,

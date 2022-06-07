@@ -8,38 +8,36 @@ out_dir=output
 # Configs files
 TOKENIZER_CONFIG = configs/tokenizers/$(tokenizer).py
 FEATURES_CONFIG = configs/features/$(features).py
-DATA_CONFIG = configs/data/$(data).py
 MODEL_CONFIG = configs/models/$(model).py
+DATA_CONFIG = configs/data/$(data).py
 TRAINING_CONFIG = configs/training/$(training).py
 
 # Output directories
 TOKENIZER_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))
 FEATURES_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))
-DATA_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(data))
-MODEL_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(data))/$(shell basename $(model))
-TRAINING_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(data))/$(shell basename $(model))/$(shell basename $(training))
+MODEL_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(model))/
+DATA_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(model))/$(shell basename $(data))
+TRAINING_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(model))/$(shell basename $(data))/$(shell basename $(training))
 
 # Directories for the output files
 TOKENIZER_FILES_DIR = $(TOKENIZER_OUT_DIR)/files
 FEATURES_FILES_DIR = $(FEATURES_OUT_DIR)/files
+MODEL_FILES_DIR = $(MODEL_OUT_DIR)/files
 DATA_FILES_DIR = $(DATA_OUT_DIR)/files
 TRAINING_FILES_DIR = $(TRAINING_OUT_DIR)
 
 # make all performs full experiment
-all: tokenizer features data training
+all: tokenizer features model data training
 
 # Tasks aliases
 tokenizer: $(TOKENIZER_FILES_DIR)
 features: $(FEATURES_FILES_DIR)
+model: $(MODEL_FILES_DIR)
 data: $(DATA_FILES_DIR)
 training: $(TRAINING_FILES_DIR)
 
 
-# $(out_dir):
-# 	mkdir -p $(TRAINING_OUT_DIR)
-
-
-$(TOKENIZER_FILES_DIR): $(TOKENIZER_CONFIG) #$(out_dir)
+$(TOKENIZER_FILES_DIR): $(TOKENIZER_CONFIG)
 	rm -rf $(TOKENIZER_FILES_DIR)
 	mkdir -p $(TOKENIZER_FILES_DIR)
 	python $(SCRIPTS_DIR)/prepare_tokenizer.py \
@@ -56,7 +54,15 @@ $(FEATURES_FILES_DIR): $(FEATURES_CONFIG) $(TOKENIZER_FILES_DIR)
 		--out $(FEATURES_FILES_DIR)
 
 
-$(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_FILE_DIR)
+$(MODEL_FILES_DIR): $(MODEL_CONFIG) 
+	rm -rf $(MODEL_FILES_DIR)
+	mkdir -p $(MODEL_FILES_DIR)
+	python $(SCRIPTS_DIR)/prepare_model.py \
+		--config $(MODEL_CONFIG) \
+		--out $(MODEL_FILES_DIR)
+
+
+$(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR)
 	rm -rf $(DATA_FILES_DIR)
 	mkdir -p $(DATA_FILES_DIR)
 	python $(SCRIPTS_DIR)/prepare_data_for_sequence_classification.py \
@@ -65,14 +71,14 @@ $(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_FILE_DIR)
 		--out $(DATA_FILES_DIR)
 
 
-$(TRAINING_FILES_DIR): $(TRAINING_CONFIG) $(MODEL_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_CONFIG) $(DATA_FILES_DIR)
+$(TRAINING_FILES_DIR): $(TRAINING_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_FILES_DIR) $(MODEL_FILES_DIR) $(DATA_FILES_DIR)
 	rm -rf $(TRAINING_FILES_DIR)
 	mkdir -p $(TRAINING_FILES_DIR)
 	python $(SCRIPTS_DIR)/train_sequence_classifier.py \
 		--training_config $(TRAINING_CONFIG) \
-		--model_config $(MODEL_CONFIG) \
 		--tokenizer_dir $(TOKENIZER_FILES_DIR) \
-		--features_config $(FEATURES_CONFIG) \
+		--features_dir $(FEATURES_FILES_DIR) \
+		--model_dir $(MODEL_FILES_DIR) \
 		--data_dir $(DATA_FILES_DIR) \
 		--out $(TRAINING_FILES_DIR)
 
