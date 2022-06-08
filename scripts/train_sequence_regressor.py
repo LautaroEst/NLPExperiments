@@ -126,39 +126,41 @@ class FullModel(pl.LightningModule):
 
     def training_step(self,batch,batch_idx):
         features = self.features_extractor(batch)
-        scores = self.main_model(features)
-        y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1).cpu().detach().numpy()
-        y_true = batch["label"].cpu().detach().numpy()
-        loss = F.cross_entropy(scores,batch["label"])
+        score = self.main_model(features).squeeze(dim=-1)
+        # y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1).cpu().detach().numpy()
+        # y_true = batch["label"].cpu().detach().numpy()
+        # loss = F.cross_entropy(scores,batch["label"])
+        loss = F.l1_loss(score,batch["label"])
         self.log_dict({
             "loss/train": loss.item(),
-            "accuracy/train": accuracy_score(y_true,y_hat),
-            "f1-score/train": f1_score(y_true,y_hat,average="macro")
+            # "accuracy/train": accuracy_score(y_true,y_hat),
+            # "f1-score/train": f1_score(y_true,y_hat,average="macro")
         },logger=True)
         return loss
 
     def validation_step(self,batch,batch_idx):
         features = self.features_extractor(batch)
-        scores = self.main_model(features)
-        y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1)
+        score = self.main_model(features).squeeze(dim=-1)
+        # y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1)
         y_true = batch["label"]
-        loss = F.cross_entropy(scores,y_true,reduction="sum")
+        # loss = F.cross_entropy(scores,y_true,reduction="sum")
+        loss = F.l1_loss(score,y_true,reduction="sum")
         return {
             "num_samples": len(y_true),
             "loss": loss.item(),
-            "y_hat": y_hat,
-            "y_true": y_true
+            # "y_hat": y_hat,
+            # "y_true": y_true
         }
 
     def validation_epoch_end(self, outputs):
         num_samples = sum([output["num_samples"] for output in outputs])
         avg_loss = sum([output["loss"] for output in outputs]) / num_samples
-        y_hat = torch.hstack([output["y_hat"] for output in outputs]).cpu().detach().numpy()
-        y_true = torch.hstack([output["y_true"] for output in outputs]).cpu().detach().numpy()
+        # y_hat = torch.hstack([output["y_hat"] for output in outputs]).cpu().detach().numpy()
+        # y_true = torch.hstack([output["y_true"] for output in outputs]).cpu().detach().numpy()
         self.log_dict({
             "loss/validation": avg_loss,
-            "accuracy/validation": accuracy_score(y_true,y_hat),
-            "f1-score/validation": f1_score(y_true,y_hat,average="macro")
+            # "accuracy/validation": accuracy_score(y_true,y_hat),
+            # "f1-score/validation": f1_score(y_true,y_hat,average="macro")
         },logger=True)
 
     def backward(self,loss,optimizer,optimizer_idx):
@@ -188,7 +190,7 @@ class TBLogger(TensorBoardLogger):
         return super().log_metrics(metrics, step)
 
 
-def train_sequence_classifier(
+def train_sequence_regressor(
         features_extractor,main_model,train_dataloader,val_dataloader,output_dir,**config
     ):
 
@@ -246,7 +248,7 @@ def main():
         num_workers
     )
 
-    results, logger = train_sequence_classifier(
+    results, logger = train_sequence_regressor(
         features_extractor,
         main_model,
         dataloaders["train"],

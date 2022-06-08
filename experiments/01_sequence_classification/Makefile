@@ -71,7 +71,7 @@ $(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR)
 	@echo "Preprocessing ${data} data..."
 	@rm -rf $(DATA_FILES_DIR)
 	@mkdir -p $(DATA_FILES_DIR)
-	@python $(SCRIPTS_DIR)/prepare_data_for_sequence_classification.py \
+	@python $(SCRIPTS_DIR)/prepare_supervised_sequences.py \
 		--config $(DATA_CONFIG) \
 		--tokenizer_dir $(TOKENIZER_FILES_DIR) \
 		--out $(DATA_FILES_DIR)
