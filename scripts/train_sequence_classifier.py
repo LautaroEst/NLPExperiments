@@ -221,31 +221,10 @@ def train_sequence_classifier(
         key=lambda ckp: float(ckp.split("val_loss=")[1].split(".ckpt")[0]),
         reverse=True
     )[0])
-    trainer.validate(model,val_dataloader,best_model_name,verbose=True)
 
-    return model, trainer, logger
+    results = trainer.validate(model,val_dataloader,best_model_name,verbose=True)
 
-# def eval_model(output_dir,features_extractor,main_model,val_dataloader,**config):
-#     best_model_name = sorted(
-#         os.listdir(os.path.join(output_dir,"version_0/checkpoints/")),
-#         key=lambda ckp: float(ckp.split("val_loss=")[1].split(".ckpt")[0]),
-#         reverse=True
-#     )[0]
-
-#     configure_optimizers=config.pop("configure_optimizers")
-#     optimizer_step=config.pop("optimizer_step")
-#     best_model = FullModel.load_from_checkpoint(
-#         os.path.join(output_dir,"version_0/checkpoints/",best_model_name),
-#         features_extractor=features_extractor,
-#         main_model=main_model,
-#         configure_optimizers=configure_optimizers,
-#         optimizer_step=optimizer_step
-#     )
-#     best_model.eval()
-    
-
-
-
+    return results, logger
 
 
 def main():
@@ -267,7 +246,7 @@ def main():
         num_workers
     )
 
-    model, trainer, logger = train_sequence_classifier(
+    results, logger = train_sequence_classifier(
         features_extractor,
         main_model,
         dataloaders["train"],
@@ -276,17 +255,18 @@ def main():
         **config
     )
 
-    # eval_model(output_dir,features_extractor,main_model,dataloaders["validation"],**config)
-
-    # logger.experiment.add_hparams(
-    #     dict(
-    #         train_batch_size=train_batch_size,
-    #         validation_batch_size=validation_batch_size,
-    #         min_epochs=config["min_epochs"],
-    #         max_epochs=config["max_epochs"],
-    #         val_check_interval=config["val_check_interval"]
-    #     )
-    # )
+    results = {f"{key.split('/')[1]}/{key.split('/')[0]}": val for key, val in results[0].items()}
+    print(results)
+    logger.experiment.add_hparams(
+        dict(
+            train_batch_size=train_batch_size,
+            validation_batch_size=validation_batch_size,
+            min_epochs=config["min_epochs"],
+            max_epochs=config["max_epochs"],
+            val_check_interval=config["val_check_interval"]
+        ),
+        results
+    )
 
 
 if __name__ == "__main__":

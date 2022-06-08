@@ -32,7 +32,6 @@ def main():
     model_name = config.pop("type")
     torch_model = init_model(model_name,**config)
     save_model(model_name,torch_model,output_dir)
-    print(torch_model)
     
 
     
