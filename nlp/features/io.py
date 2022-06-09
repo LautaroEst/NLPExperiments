@@ -1,19 +1,23 @@
+from nlp.features.teaming import teaming_features_initializer, teaming_features_loader, teaming_features_saver
 from .cbow import *
 from .bow import *
 
 _initializers_functions = {
     "cbow": cbow_initializer,
-    "bag_of_words": bag_of_words_initializer
+    "bag_of_words": bag_of_words_initializer,
+    "teaming_features": teaming_features_initializer
 }
 
 _savers_functions = {
     "cbow": cbow_saver,
-    "bag_of_words": bag_of_words_saver
+    "bag_of_words": bag_of_words_saver,
+    "teaming_features": teaming_features_saver
 }
 
 _loaders_functions = {
     "cbow": cbow_loader,
-    "bag_of_words": bag_of_words_loader
+    "bag_of_words": bag_of_words_loader,
+    "teaming_features": teaming_features_loader
 }
 
 def init_features_extractor(model,**kwargs):

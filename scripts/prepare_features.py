@@ -41,7 +41,6 @@ def main():
     config["tokenizer"] = tokenizer
     extractor = init_features_extractor(extractor_model,**config)
     save_features_extractor(extractor_model,extractor,output_dir)
-    pass
     
 
     
