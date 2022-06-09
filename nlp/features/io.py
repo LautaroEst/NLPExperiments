@@ -1,15 +1,19 @@
 from .cbow import *
+from .bow import *
 
 _initializers_functions = {
-    "cbow": cbow_initializer
+    "cbow": cbow_initializer,
+    "bag_of_words": bag_of_words_initializer
 }
 
 _savers_functions = {
-    "cbow": cbow_saver
+    "cbow": cbow_saver,
+    "bag_of_words": bag_of_words_saver
 }
 
 _loaders_functions = {
-    "cbow": cbow_loader
+    "cbow": cbow_loader,
+    "bag_of_words": bag_of_words_loader
 }
 
 def init_features_extractor(model,**kwargs):

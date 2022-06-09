@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import numpy as np
 import torch
 from torch import nn, optim
 import torch.nn.functional as F
@@ -15,7 +16,7 @@ from import_config import import_configs_objs
 from datasets import DatasetDict
 
 from nlp.features import load_features_extractor
-from nlp.models import load_model
+from nlp.models import load_model, SKLEARN_MODELS
 from sklearn.metrics import f1_score, accuracy_score
 
 
@@ -62,10 +63,10 @@ def load_main_model(model_dir):
     with open(os.path.join(model_dir,"params.json"),"r") as f:
         model_type = json.load(f)["type"]
     model = load_model(model_type,model_dir)
-    return model
+    return model, model_type
 
 
-def load_data(
+def load_data_in_batches(
         data_dir,
         tokenizer,
         train_batch_size,
@@ -188,9 +189,22 @@ class TBLogger(TensorBoardLogger):
         return super().log_metrics(metrics, step)
 
 
-def train_sequence_classifier(
-        features_extractor,main_model,train_dataloader,val_dataloader,output_dir,**config
+def train_neural_sequence_classifier(
+        features_extractor,main_model,data_dir,tokenizer,output_dir,**config
     ):
+
+    train_batch_size=config.pop("train_batch_size")
+    validation_batch_size=config.pop("validation_batch_size")
+    padding_strategy=config.pop("padding_strategy")
+    num_workers=config.pop("num_workers")
+    dataloaders = load_data_in_batches(
+        data_dir,
+        tokenizer,
+        train_batch_size,
+        validation_batch_size,
+        padding_strategy,
+        num_workers
+    )
 
     configure_optimizers=config.pop("configure_optimizers")
     optimizer_step=config.pop("optimizer_step")
@@ -213,7 +227,7 @@ def train_sequence_classifier(
         # fast_dev_run=True, # Uncomment to simulate training
         **config
     )
-    trainer.fit(model,train_dataloader,val_dataloader)
+    trainer.fit(model,dataloaders["train"],dataloaders["validation"])
 
 
     best_model_name = os.path.join(output_dir,"version_0/checkpoints/",sorted(
@@ -222,50 +236,88 @@ def train_sequence_classifier(
         reverse=True
     )[0])
 
-    results = trainer.validate(model,val_dataloader,best_model_name,verbose=True)
+    results = trainer.validate(model,dataloaders["validation"],best_model_name,verbose=True)
 
     return results, logger
+
+
+def train_sklearn_sequence_classifier(
+    features_extractor,main_model,data_dir,tokenizer,output_dir,**config
+):
+    
+    dataset = DatasetDict.load_from_disk(data_dir)
+
+    vectorized_datasets = {}
+    for split in ["train", "validation"]:
+        X = features_extractor.fit_transform(dataset[split]) if split == "train" else \
+            features_extractor.transform(dataset[split])
+        vectorized_datasets[split] = {
+            "X": X,
+            "y": np.array(dataset[split]["label"])
+        }
+    
+    main_model.fit(
+        vectorized_datasets["train"]["X"],
+        vectorized_datasets["train"]["y"]
+    )
+
+    y_preds = {
+        split: main_model.predict(vectorized_datasets[split]["X"]) \
+        for split in ["train", "validation"]
+    }
+
+    results = {}
+    for split in ["train", "validation"]:
+        results[f"f1-score/{split}"] = f1_score(vectorized_datasets[split]["y"],y_preds[split],average="macro")
+        results[f"accuracy/{split}"] = accuracy_score(vectorized_datasets[split]["y"],y_preds[split])
+    
+    with open(os.path.join(output_dir,"results.json"),"w") as f:
+        json.dump(results,f,indent=4,separators=", ")
+        
+    print(results)
+
+    
 
 
 def main():
     config, directories, output_dir = parse_args()
     tokenizer = load_tokenizer(directories["tokenizer"])
     features_extractor = load_extractor(directories["features"])
-    main_model = load_main_model(directories["model"])
+    main_model, model_type = load_main_model(directories["model"])
 
-    train_batch_size=config.pop("train_batch_size")
-    validation_batch_size=config.pop("validation_batch_size")
-    padding_strategy=config.pop("padding_strategy")
-    num_workers=config.pop("num_workers")
-    dataloaders = load_data(
-        directories["data"],
-        tokenizer,
-        train_batch_size,
-        validation_batch_size,
-        padding_strategy,
-        num_workers
-    )
+    if model_type not in SKLEARN_MODELS:
 
-    results, logger = train_sequence_classifier(
-        features_extractor,
-        main_model,
-        dataloaders["train"],
-        dataloaders["validation"],
-        output_dir,
-        **config
-    )
+        results, logger = train_neural_sequence_classifier(
+            features_extractor,
+            main_model,
+            directories["data"],
+            tokenizer,
+            output_dir,
+            **config
+        )
 
-    results = {f"{key.split('/')[1]}/{key.split('/')[0]}": val for key, val in results[0].items()}
-    logger.experiment.add_hparams(
-        dict(
-            train_batch_size=train_batch_size,
-            validation_batch_size=validation_batch_size,
-            min_epochs=config["min_epochs"],
-            max_epochs=config["max_epochs"],
-            val_check_interval=config["val_check_interval"]
-        ),
-        results
-    )
+        results = {f"{key.split('/')[1]}/{key.split('/')[0]}": val for key, val in results[0].items()}
+        logger.experiment.add_hparams(
+            dict(
+                train_batch_size=config["train_batch_size"],
+                validation_batch_size=config["validation_batch_size"],
+                min_epochs=config["min_epochs"],
+                max_epochs=config["max_epochs"],
+                val_check_interval=config["val_check_interval"]
+            ),
+            results
+        )
+
+    else:
+
+        train_sklearn_sequence_classifier(
+            features_extractor,
+            main_model,
+            directories["data"],
+            tokenizer,
+            output_dir,
+            **config
+        )
 
 
 if __name__ == "__main__":

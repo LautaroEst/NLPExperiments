@@ -43,8 +43,8 @@ def two_layer_net_loader(model_dir):
         params = json.load(f)
 
     params.pop("type")
-    extractor = TwoLayerNet(**params)
+    torch_model = TwoLayerNet(**params)
     state_dict = torch.load(os.path.join(model_dir,"state_dict.pkl"))
 
-    extractor.load_state_dict(state_dict)
-    return extractor
+    torch_model.load_state_dict(state_dict)
+    return torch_model

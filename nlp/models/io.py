@@ -1,15 +1,19 @@
 from .two_layer_net import *
+from .sklearn_models import *
 
 _initializers_functions = {
-    "two_layer_net": two_layer_net_initializer
+    "two_layer_net": two_layer_net_initializer,
+    "naive_bayes": lambda **kwargs: sklearn_model_initializer("naive_bayes",**kwargs)
 }
 
 _savers_functions = {
-    "two_layer_net": two_layer_net_saver
+    "two_layer_net": two_layer_net_saver,
+    "naive_bayes": lambda model, model_dir : sklearn_model_saver("naive_bayes",model,model_dir)
 }
 
 _loaders_functions = {
-    "two_layer_net": two_layer_net_loader
+    "two_layer_net": two_layer_net_loader,
+    "naive_bayes": sklearn_model_loader
 }
 
 def init_model(model_name,**kwargs):
