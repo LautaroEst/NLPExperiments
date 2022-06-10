@@ -6,3 +6,10 @@ This repository contains the source code to perform some standard classification
 * `nlp`: python module to reproduce the experiment pipeline.
 * `scripts`: some common scripts that are called by the experiments scripts (inside each experiment directory) that perform some general task like training a model, a tokenizer, evaluate them, etc.
 * `data`: data directories where the data used in the experiments are saved.
+
+
+## TO DO:
+
+* Cambiar el orden modelo/datos
+* Pensar en alguna solución para hacer un resume de un entrenamiento
+* Tratar de unificar regresión y clasificación tomando como argumentos las métricas, cantidad de salidas, etc.

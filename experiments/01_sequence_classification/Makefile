@@ -37,6 +37,7 @@ data: $(DATA_FILES_DIR)
 training: $(TRAINING_FILES_DIR)
 
 
+
 $(TOKENIZER_FILES_DIR): $(TOKENIZER_CONFIG)
 	@echo "Preparing tokenizer ${tokenizer}..."
 	@rm -rf $(TOKENIZER_FILES_DIR)
