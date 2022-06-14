@@ -26,6 +26,7 @@ def optimizer_step(
 
 config = dict(
 
+
     # Batching args:
     train_batch_size=32,
     validation_batch_size=64,

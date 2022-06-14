@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
-from import_config import import_configs_objs
+from utils import import_configs_objs
 from datasets import load_dataset, DatasetDict
 
 

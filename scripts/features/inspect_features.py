@@ -5,7 +5,7 @@ import json
 import os
 
 from transformers import AutoTokenizer
-from import_config import import_configs_objs
+from utils import import_configs_objs
 from nlp.features import load_features_extractor
 
 

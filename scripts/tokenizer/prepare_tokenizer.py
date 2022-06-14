@@ -1,5 +1,5 @@
 import argparse
-from import_config import import_configs_objs
+from utils import import_configs_objs
 from transformers import AutoTokenizer, PreTrainedTokenizerFast
 from tokenizers import Tokenizer
 
