@@ -6,8 +6,8 @@ from types import ModuleType
 from datasets import DatasetDict
 
 from transformers import AutoTokenizer
-from nlp.features import load_features_extractor
-from nlp.models import load_model, SKLEARN_MODELS
+from nlp.features import FeaturesExtractor
+from nlp.models import MainModel
 from torch.utils.data import DataLoader
 
 
@@ -52,21 +52,14 @@ def load_tokenizer(tokenizer_dir):
     return tokenizer
 
 
-def load_extractor(features_dir):
-    with open(os.path.join(features_dir,"params.json"),"r") as f:
-        extractor_type = json.load(f)["type"]
-    extractor = load_features_extractor(extractor_type,features_dir)
+def load_extractor(tokenizer,features_dir):
+    extractor = FeaturesExtractor.load(tokenizer,features_dir)
     return extractor
 
 
 def load_main_model(model_dir):
-    with open(os.path.join(model_dir,"params.json"),"r") as f:
-        params = json.load(f)
-    model_type = params["type"]
-    task = params["task"]
-    model = load_model(model_type,model_dir)
-    is_sklearn_model = model_type in SKLEARN_MODELS
-    return model, is_sklearn_model, task
+    model = MainModel.load(model_dir)
+    return model
 
 
 def load_data_in_batches(
