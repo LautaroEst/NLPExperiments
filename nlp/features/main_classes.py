@@ -25,6 +25,7 @@ class BaseFeaturesExtractor(nn.Module):
             ),f)
 
 
+
 class NeuralFeatureExtractor(BaseFeaturesExtractor):
 
     def save(self,output_dir):
