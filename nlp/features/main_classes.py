@@ -11,7 +11,7 @@ from .bow import BOW
 
 _supported_extractors = {
     "cbow": CBOW,
-    "bow": BOW
+    "bag_of_words": BOW
 }
 
 
@@ -31,7 +31,6 @@ class FeaturesExtractor(object):
 
     def init_extractor(self):
         self.extractor.init_extractor()
-
 
     def save(self,output_dir):
         if isinstance(self.extractor,nn.Module):

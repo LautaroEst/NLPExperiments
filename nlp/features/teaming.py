@@ -49,29 +49,3 @@ class TeamingFeatures(object):
         X = self._create_sparse_matrix(dataset)
         return X
 
-
-def teaming_features_initializer(tokenizer,column):
-    vocab_size = len(tokenizer)
-    extractor = TeamingFeatures(vocab_size,column)
-    return extractor
-
-
-def teaming_features_saver(extractor,features_dir):
-    torch.save({},os.path.join(features_dir,"state_dict.pkl"))
-    with open(os.path.join(features_dir,"params.json"),"w") as f:
-        json.dump({
-            "type": "teaming_features",
-            "vocab_size": extractor.vocab_size,
-            "column": extractor.column
-        },f)
-
-
-def teaming_features_loader(features_dir):
-    with open(os.path.join(features_dir,"params.json"),"r") as f:
-        params = json.load(f)
-
-    params.pop("type")
-    extractor = TeamingFeatures(**params)
-    # state_dict = torch.load(os.path.join(features_dir,"state_dict.pkl"))
-    # extractor.load_state_dict(state_dict)
-    return extractor

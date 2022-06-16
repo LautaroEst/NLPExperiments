@@ -11,8 +11,8 @@ from sklearn.naive_bayes import MultinomialNB
 
 
 _supported_models = {
-    "two_layer_net": TwoLayerNet,
-    "naive_bayes": MultinomialNB
+    "two_layer_net": (TwoLayerNet, "torch"),
+    "naive_bayes": (MultinomialNB, "sklearn")
 }
 
 
@@ -23,13 +23,16 @@ class MainModel(object):
         # Instantiate the sklearn/torch model
         model_type = params.pop("type")
         task = params.pop("task")
-        model_class = _supported_models[model_type]
+        model_class, framework = _supported_models[model_type]
         self.model = model_class(**params)
 
         # Keep the task and type and params
         self.task = task
         self.model_type = model_type
         self.params = params
+
+        # Keep framework
+        self.framework = framework
 
 
     def save(self,output_dir):

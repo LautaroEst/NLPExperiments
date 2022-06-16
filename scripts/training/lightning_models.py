@@ -15,7 +15,7 @@ class TBLogger(TensorBoardLogger):
         return super().log_metrics(metrics, step)
 
 
-class Sequence2ValueModel(pl.LightningModule):
+class SequenceEstimatorModel(pl.LightningModule):
 
     def __init__(   
         self,
@@ -25,8 +25,8 @@ class Sequence2ValueModel(pl.LightningModule):
         optimizer_step
     ):
         super().__init__()
-        self.features_extractor = features_extractor
-        self.main_model = main_model
+        self.features_extractor = features_extractor.extractor
+        self.main_model = main_model.model
         self.__configure_optimizers = configure_optimizers
         self.__optimizer_step = optimizer_step
 
@@ -51,7 +51,7 @@ class Sequence2ValueModel(pl.LightningModule):
 
 
 
-class ClassificationModel(Sequence2ValueModel):
+class ClassificationModel(SequenceEstimatorModel):
 
     def forward(self,batch):
         features = self.features_extractor(batch)
@@ -97,7 +97,7 @@ class ClassificationModel(Sequence2ValueModel):
         },logger=True)
 
 
-class RegressionModel(Sequence2ValueModel):
+class RegressionModel(SequenceEstimatorModel):
 
     def forward(self,batch):
         features = self.features_extractor(batch)
