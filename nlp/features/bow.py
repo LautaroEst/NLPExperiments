@@ -1,18 +1,24 @@
-import json
-import os
+
 import numpy as np
 import scipy.sparse as sp
-import torch
-from torch import nn
 from collections import Counter
 from tqdm import tqdm
+from torch import nn
+from .main_classes import GenericMLFeatureExtractor
 
 
-class BOW(object):
+class BOW(GenericMLFeatureExtractor):
 
-    def __init__(self,tokenizer,column):
+    name = "bag_of_words"
+    is_neural_network = False
+
+    def __init__(self,tokenizer,column=None):
+        params = dict(
+            column=column
+        )
+        super().__init__(tokenizer,**params)
         self.vocab_size = len(tokenizer)
-        self.column = column
+        self.sklearn_parameters = {}
 
     def _create_sparse_matrix(self,dataset):
         j_indices = []
@@ -37,15 +43,9 @@ class BOW(object):
         X.sort_indices()
         return X
 
-
     def init_extractor(self):
         pass
 
-    def fit_transform(self,dataset):
+    def forward(self,dataset):
         X = self._create_sparse_matrix(dataset)
         return X
-
-    def transform(self,dataset):
-        X = self._create_sparse_matrix(dataset)
-        return X
-

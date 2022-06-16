@@ -1,8 +1,11 @@
 import torch
 from torch import nn
+from .main_classes import NeuralModel
 
 
-class TwoLayerNet(nn.Module):
+class TwoLayerNet(NeuralModel):
+
+    name = "two_layer_net"
 
     def __init__(self,input_size,hidden_size,output_size):
         super().__init__()
@@ -21,36 +24,3 @@ class TwoLayerNet(nn.Module):
         return x
 
 
-
-
-
-
-# def two_layer_net_initializer(task,input_size,hidden_size,output_size):
-#     model = TwoLayerNet(input_size,hidden_size,output_size)
-#     model.task = task
-#     return model
-
-
-# def two_layer_net_saver(torch_model,model_dir):
-#     torch.save(torch_model.state_dict(),os.path.join(model_dir,"state_dict.pkl"))
-#     with open(os.path.join(model_dir,"params.json"),"w") as f:
-#         json.dump({
-#             "type": "two_layer_net",
-#             "task": torch_model.task,
-#             "input_size": torch_model.input_size,
-#             "hidden_size": torch_model.hidden_size,
-#             "output_size": torch_model.output_size
-#         },f)
-
-
-# def two_layer_net_loader(model_dir):
-#     with open(os.path.join(model_dir,"params.json"),"r") as f:
-#         params = json.load(f)
-
-#     params.pop("type")
-#     params.pop("task")
-#     torch_model = TwoLayerNet(**params)
-#     state_dict = torch.load(os.path.join(model_dir,"state_dict.pkl"))
-
-#     torch_model.load_state_dict(state_dict)
-#     return torch_model
