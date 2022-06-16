@@ -1,1 +1,1 @@
-from .io import init_model, save_model, load_model, SKLEARN_MODELS
+from .main_classes import MainModel

@@ -14,26 +14,26 @@ TRAINING_CONFIG = configs/training/$(training).py
 
 # Output directories
 TOKENIZER_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))
-FEATURES_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))
-MODEL_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(model))/
-DATA_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(model))/$(shell basename $(data))
-TRAINING_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(features))/$(shell basename $(model))/$(shell basename $(data))/$(shell basename $(training))
+DATA_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))
+FEATURES_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))
+MODEL_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))/$(shell basename $(model))/
+TRAINING_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))/$(shell basename $(model))/$(shell basename $(training))
 
 # Directories for the output files
 TOKENIZER_FILES_DIR = $(TOKENIZER_OUT_DIR)/files
+DATA_FILES_DIR = $(DATA_OUT_DIR)/files
 FEATURES_FILES_DIR = $(FEATURES_OUT_DIR)/files
 MODEL_FILES_DIR = $(MODEL_OUT_DIR)/files
-DATA_FILES_DIR = $(DATA_OUT_DIR)/files
 TRAINING_FILES_DIR = $(TRAINING_OUT_DIR)
 
 # make all performs full experiment
-all: tokenizer features model data training
+all: tokenizer data features model training
 
 # Tasks aliases
 tokenizer: $(TOKENIZER_FILES_DIR)
+data: $(DATA_FILES_DIR)
 features: $(FEATURES_FILES_DIR)
 model: $(MODEL_FILES_DIR)
-data: $(DATA_FILES_DIR)
 training: $(TRAINING_FILES_DIR)
 
 
@@ -44,6 +44,17 @@ $(TOKENIZER_FILES_DIR): $(TOKENIZER_CONFIG)
 	@python $(SCRIPTS_DIR)/tokenizer/prepare_tokenizer.py \
 		--config $(TOKENIZER_CONFIG) \
 		--out $(TOKENIZER_FILES_DIR)
+
+
+$(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR)
+	@echo "Preprocessing ${data} data..."
+	@rm -rf $(DATA_FILES_DIR)
+	@mkdir -p $(DATA_FILES_DIR)
+	@python $(SCRIPTS_DIR)/data/prepare_supervised_sequences.py \
+		--config $(DATA_CONFIG) \
+		--tokenizer_dir $(TOKENIZER_FILES_DIR) \
+		--out $(DATA_FILES_DIR)
+	@echo ""
 
 
 $(FEATURES_FILES_DIR): $(FEATURES_CONFIG) $(TOKENIZER_FILES_DIR)
@@ -67,22 +78,11 @@ $(MODEL_FILES_DIR): $(MODEL_CONFIG)
 	@echo ""
 
 
-$(DATA_FILES_DIR): $(DATA_CONFIG) $(TOKENIZER_FILES_DIR)
-	@echo "Preprocessing ${data} data..."
-	@rm -rf $(DATA_FILES_DIR)
-	@mkdir -p $(DATA_FILES_DIR)
-	@python $(SCRIPTS_DIR)/data/prepare_supervised_sequences.py \
-		--config $(DATA_CONFIG) \
-		--tokenizer_dir $(TOKENIZER_FILES_DIR) \
-		--out $(DATA_FILES_DIR)
-	@echo ""
-
-
 $(TRAINING_FILES_DIR): $(TRAINING_CONFIG) $(TOKENIZER_FILES_DIR) $(FEATURES_FILES_DIR) $(MODEL_FILES_DIR) $(DATA_FILES_DIR)
 	@echo "Starting training with ${training} config file..."
 	@rm -rf $(TRAINING_FILES_DIR)
 	@mkdir -p $(TRAINING_FILES_DIR)
-	@python $(SCRIPTS_DIR)/training/train_sequence_regressor.py \
+	@python $(SCRIPTS_DIR)/training/train_sequence_estimator.py \
 		--training_config $(TRAINING_CONFIG) \
 		--tokenizer_dir $(TOKENIZER_FILES_DIR) \
 		--features_dir $(FEATURES_FILES_DIR) \

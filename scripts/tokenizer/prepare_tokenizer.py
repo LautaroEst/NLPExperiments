@@ -1,28 +1,6 @@
-import argparse
-from utils import import_configs_objs
-from transformers import AutoTokenizer, PreTrainedTokenizerFast
+from utils import parse_args, load_pretrained_tokenizer
+from transformers import PreTrainedTokenizerFast
 from tokenizers import Tokenizer
-
-
-def parse_args():
-    # Parser init
-    parser = argparse.ArgumentParser()
-    
-    # Arguments
-    parser.add_argument("--config",help="Python file with the tokenizer loading configuration")
-    parser.add_argument("--out",help="Output directory")
-    args = vars(parser.parse_args())
-
-    # Extract config and output directory
-    output_dir = args["out"]
-    config = import_configs_objs(args["config"])["config"]
-
-    return config, output_dir
-
-
-def load_pretrained_tokenizer(**config):
-    tokenizer = AutoTokenizer.from_pretrained(**config)
-    return tokenizer
 
 
 def train_tokenizer_from_corpus(**config):
@@ -43,10 +21,6 @@ def train_tokenizer_from_corpus(**config):
     return tokenizer
 
     
-
-
-
-
 def main():
     config, output_dir = parse_args()
 
