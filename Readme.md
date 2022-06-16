@@ -10,6 +10,11 @@ This repository contains the source code to perform some standard classification
 
 ## TO DO:
 
-* Cambiar el orden modelo/datos
+* Unificar sklearn model con torch
+* Mejorar el config de training (implementar configs para optimizador, loss, etc.). Quizás implementar modelo y training todo en uno
+* Implementar cross-validation
 * Pensar en alguna solución para hacer un resume de un entrenamiento
-* Tratar de unificar regresión y clasificación tomando como argumentos las métricas, cantidad de salidas, etc.
+
+* Features selection de teaming para algunas de las preguntas
+* Elegir las preguntas que van para teaming
+* Hablar con ramiro para preguntar sobre las preguntas en castellano
