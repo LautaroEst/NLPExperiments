@@ -6,7 +6,6 @@ from .main_classes import NeuralFeatureExtractor
 class CBOW(NeuralFeatureExtractor):
 
     name = "cbow"
-    is_neural_network = True
 
     def __init__(self,tokenizer,embedding_dim=300,pretrained_file=None,freeze_parameters=True):
         params = dict(
@@ -27,7 +26,7 @@ class CBOW(NeuralFeatureExtractor):
             ## TO DO: Support pretrained embeddings
             self.embeddings = self.embeddings
 
-    def forward(self,batch):
+    def transform(self,batch):
         cbow = self.embeddings(batch["input_ids"]).mean(axis=1) # Batch first
         return cbow
     

@@ -46,6 +46,6 @@ class BOW(GenericMLFeatureExtractor):
     def init_extractor(self):
         pass
 
-    def forward(self,dataset):
+    def transform(self,dataset):
         X = self._create_sparse_matrix(dataset)
         return X
