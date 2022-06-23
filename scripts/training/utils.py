@@ -53,7 +53,7 @@ def load_tokenizer(tokenizer_dir):
 
 
 def load_extractor(tokenizer,features_dir):
-    with open(os.path.join(features_dir,"params.json"),"r") as f:
+    with open(os.path.join(features_dir,"config_params.json"),"r") as f:
         name = json.load(f)["type"]
     for extractor_class in SUPPORTED_EXTRACTORS:
         if extractor_class.name == name:
@@ -63,7 +63,7 @@ def load_extractor(tokenizer,features_dir):
 
 
 def load_main_model(model_dir):
-    with open(os.path.join(model_dir,"params.json"),"r") as f:
+    with open(os.path.join(model_dir,"config_params.json"),"r") as f:
         name = json.load(f)["type"]
     for model_class in SUPPORTED_MODELS:
         if model_class.name == name:

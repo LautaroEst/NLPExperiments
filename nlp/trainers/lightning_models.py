@@ -47,17 +47,17 @@ class SequenceEstimatorModel(pl.LightningModule):
 class ClassificationModel(SequenceEstimatorModel):
 
     def forward(self,batch):
-        features = self.features_extractor(batch)
-        scores = self.main_model(features)
-        y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1)
+        features = self.extractor(batch)
+        output = self.main_model(features)
+        y_hat = output["predictions"]
         return y_hat
 
     def training_step(self,batch,batch_idx):
-        features = self.features_extractor(batch)
-        scores = self.main_model(features)
-        y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1).cpu().detach().numpy()
+        features = self.extractor(batch)
+        output = self.main_model(features)
+        y_hat = output["predictions"].cpu().detach().numpy()
         y_true = batch["label"].cpu().detach().numpy()
-        loss = F.cross_entropy(scores,batch["label"])
+        loss = F.nll_loss(output["predictions"],batch["label"])
         self.log_dict({
             "loss/train": loss.item(),
             "accuracy/train": accuracy_score(y_true,y_hat),
@@ -66,11 +66,11 @@ class ClassificationModel(SequenceEstimatorModel):
         return loss
 
     def validation_step(self,batch,batch_idx):
-        features = self.features_extractor(batch)
-        scores = self.main_model(features)
-        y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1)
+        features = self.extractor(batch)
+        output = self.main_model(features)
+        y_hat = output["predictions"]
         y_true = batch["label"]
-        loss = F.cross_entropy(scores,y_true,reduction="sum")
+        loss = F.nll_loss(output["log_probs"],y_true,reduction="sum")
         return {
             "num_samples": len(y_true),
             "loss": loss.item(),
@@ -93,18 +93,18 @@ class ClassificationModel(SequenceEstimatorModel):
 class RegressionModel(SequenceEstimatorModel):
 
     def forward(self,batch):
-        features = self.features_extractor(batch)
-        scores = self.main_model(features)
-        y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1)
+        features = self.extractor(batch)
+        output = self.main_model(features)
+        y_hat = output["predictions"]
         return y_hat
 
     def training_step(self,batch,batch_idx):
-        features = self.features_extractor(batch)
-        score = self.main_model(features).squeeze(dim=-1)
+        features = self.extractor(batch)
+        output = self.main_model(features)
         # y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1).cpu().detach().numpy()
         # y_true = batch["label"].cpu().detach().numpy()
         # loss = F.cross_entropy(scores,batch["label"])
-        loss = F.l1_loss(score,batch["label"])
+        loss = F.l1_loss(output["predictions"],batch["label"])
         self.log_dict({
             "loss/train": loss.item(),
             # "accuracy/train": accuracy_score(y_true,y_hat),
@@ -113,12 +113,12 @@ class RegressionModel(SequenceEstimatorModel):
         return loss
 
     def validation_step(self,batch,batch_idx):
-        features = self.features_extractor(batch)
-        score = self.main_model(features).squeeze(dim=-1)
+        features = self.extractor(batch)
+        output = self.main_model(features)
         # y_hat = torch.argmax(F.log_softmax(scores,dim=-1),dim=-1)
         y_true = batch["label"]
         # loss = F.cross_entropy(scores,y_true,reduction="sum")
-        loss = F.l1_loss(score,y_true,reduction="sum")
+        loss = F.l1_loss(output["predictions"],y_true,reduction="sum")
         return {
             "num_samples": len(y_true),
             "loss": loss.item(),

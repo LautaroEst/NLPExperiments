@@ -10,7 +10,6 @@ from .main_classes import GenericMLFeatureExtractor
 class BOW(GenericMLFeatureExtractor):
 
     name = "bag_of_words"
-    is_neural_network = False
 
     def __init__(self,tokenizer,column=None):
         params = dict(
@@ -18,7 +17,7 @@ class BOW(GenericMLFeatureExtractor):
         )
         super().__init__(tokenizer,**params)
         self.vocab_size = len(tokenizer)
-        self.sklearn_parameters = {}
+        self.parameters = {}
 
     def _create_sparse_matrix(self,dataset):
         j_indices = []

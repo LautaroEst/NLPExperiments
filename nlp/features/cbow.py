@@ -8,12 +8,12 @@ class CBOW(NeuralFeatureExtractor):
     name = "cbow"
 
     def __init__(self,tokenizer,embedding_dim=300,pretrained_file=None,freeze_parameters=True):
-        params = dict(
+        config_params = dict(
             embedding_dim=embedding_dim,
             pretrained_file=pretrained_file,
             freeze_parameters=freeze_parameters
         )
-        super().__init__(tokenizer,**params)
+        super().__init__(tokenizer,**config_params)
         self.embeddings = nn.Embedding(len(tokenizer),embedding_dim,tokenizer.pad_token_id)
         self.pretrained_file = pretrained_file
         self.freeze_parameters = freeze_parameters

@@ -12,6 +12,7 @@ def main():
 
     task = config.pop("task")
     main_model = model_class(task,**config)
+    main_model.init_model()
     main_model.save(output_dir)
 
 

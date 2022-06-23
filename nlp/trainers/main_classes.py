@@ -4,7 +4,6 @@ import numpy as np
 import pytorch_lightning as pl
 from sklearn.metrics import accuracy_score, f1_score
 
-from scripts.training.train_sequence_estimator import main
 from .lightning_models import ClassificationModel, RegressionModel, TBLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
