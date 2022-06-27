@@ -1,56 +1,49 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
+from .main_classes import NeuralMainModel
 
 
-class TwoLayerNet(nn.Module):
+class TwoLayerNet(NeuralMainModel):
 
-    def __init__(self,input_size,hidden_size,output_size):
-        super().__init__()
+    name = "two_layer_net"
+
+    def __init__(self,task,input_size=100,hidden_size=200,output_size=5):
+
+        config_params = dict(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            output_size=output_size
+        )
+        super().__init__(task,**config_params)
 
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
 
         self.input_layer = nn.Linear(input_size,hidden_size)
-        self.output_layer = nn.Linear(hidden_size,output_size)
+
+        if output_size == 2:
+            self.output_layer = nn.Linear(hidden_size,1)
+            self.output_activation = lambda x: F.logsigmoid(x.squeeze(dim=-1))
+            self.output_discriminator = lambda log_prob: (log_prob > 0.5).type(torch.float)
+        else:
+            self.output_layer = nn.Linear(hidden_size,output_size)
+            self.output_activation = nn.LogSoftmax(dim=-1)
+            self.output_discriminator = lambda log_probs: torch.argmax(log_probs,dim=-1)
+
+    def init_model(self):
+        pass
 
     def forward(self,x):
         x = self.input_layer(x)
         x = torch.relu(x)
         x = self.output_layer(x)
-        return x
+        log_probs = self.output_activation(x)
+        y_predict = self.output_discriminator(log_probs)
+        return {
+            "log_probs": log_probs,
+            "predictions": y_predict
+        }
 
 
-
-
-
-
-# def two_layer_net_initializer(task,input_size,hidden_size,output_size):
-#     model = TwoLayerNet(input_size,hidden_size,output_size)
-#     model.task = task
-#     return model
-
-
-# def two_layer_net_saver(torch_model,model_dir):
-#     torch.save(torch_model.state_dict(),os.path.join(model_dir,"state_dict.pkl"))
-#     with open(os.path.join(model_dir,"params.json"),"w") as f:
-#         json.dump({
-#             "type": "two_layer_net",
-#             "task": torch_model.task,
-#             "input_size": torch_model.input_size,
-#             "hidden_size": torch_model.hidden_size,
-#             "output_size": torch_model.output_size
-#         },f)
-
-
-# def two_layer_net_loader(model_dir):
-#     with open(os.path.join(model_dir,"params.json"),"r") as f:
-#         params = json.load(f)
-
-#     params.pop("type")
-#     params.pop("task")
-#     torch_model = TwoLayerNet(**params)
-#     state_dict = torch.load(os.path.join(model_dir,"state_dict.pkl"))
-
-#     torch_model.load_state_dict(state_dict)
-#     return torch_model

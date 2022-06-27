@@ -16,7 +16,7 @@ TRAINING_CONFIG = configs/training/$(training).py
 TOKENIZER_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))
 DATA_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))
 FEATURES_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))
-MODEL_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))/$(shell basename $(model))/
+MODEL_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))/$(shell basename $(model))
 TRAINING_OUT_DIR = $(out_dir)/$(shell basename $(tokenizer))/$(shell basename $(data))/$(shell basename $(features))/$(shell basename $(model))/$(shell basename $(training))
 
 # Directories for the output files

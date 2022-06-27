@@ -1,2 +1,8 @@
-# from .io import init_features_extractor, save_features_extractor, load_features_extractor
-from .main_classes import FeaturesExtractor
+from .cbow import CBOW
+from .bow import BOW
+
+
+SUPPORTED_EXTRACTORS = [
+    CBOW,
+    BOW
+]

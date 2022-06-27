@@ -3,10 +3,11 @@
 
 config = {
     "type": "two_layer_net",
-    "task": "regression",
+    "task": "classification",
     "input_size": 300,
     "hidden_size": 50,
-    "output_size": 1
+    "output_size": 5
 }
+
 
 
