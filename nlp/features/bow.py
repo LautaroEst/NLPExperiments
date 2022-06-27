@@ -12,20 +12,21 @@ class BOW(GenericMLFeatureExtractor):
     name = "bag_of_words"
 
     def __init__(self,tokenizer,column=None):
-        params = dict(
+        config_params = dict(
             column=column
         )
-        super().__init__(tokenizer,**params)
+        super().__init__(tokenizer,**config_params)
         self.vocab_size = len(tokenizer)
-        self.parameters = {}
+        self._state_dict = {}
 
     def _create_sparse_matrix(self,dataset):
         j_indices = []
         values = []
         indptr = [0]
 
+        column = self.config_params["column"]
         for indices in tqdm(dataset,total=len(dataset)):
-            feature_counter = Counter(indices[self.column])
+            feature_counter = Counter(indices[column])
             j_indices.extend(feature_counter.keys())
             values.extend(feature_counter.values())
             indptr.append(len(j_indices))

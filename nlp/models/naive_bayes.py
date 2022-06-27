@@ -9,7 +9,7 @@ class NaiveBayes(GenericMLMainModel):
 
     name = "naive_bayes"
 
-    def __init__(self,task,alpha=1.0,fit_prior=True,class_prior=True):
+    def __init__(self,task,alpha=1.0,fit_prior=True,class_prior=None):
         config_params = dict(
             alpha=alpha,
             fit_prior=fit_prior,
@@ -17,11 +17,11 @@ class NaiveBayes(GenericMLMainModel):
         )
         super().__init__(task,**config_params)
         self.model = MultinomialNB(**config_params)
-        self.state_dict = {} # TO DO: COMPLETAR LOS PARÁMETROS
+        self._state_dict = {} # TO DO: COMPLETAR LOS PARÁMETROS
 
     def fit(self,X,y):
         self.model.fit(X,y)
-        self.state_dict = {} # TO DO: COMPLETAR LOS PARÁMETROS
+        self._state_dict = {} # TO DO: COMPLETAR LOS PARÁMETROS
 
     def init_model(self):
         pass

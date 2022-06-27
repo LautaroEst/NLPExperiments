@@ -40,16 +40,17 @@ def train_model(features_extractor,main_model,dataset,output_dir,**config):
         trainer = SupervisedGenericMLModelTrainer(features_extractor,main_model,**config)
         
     trainer.fit(dataset)
+
+    return trainer
+
+
+def validate_model_and_save_results(trainer,dataset,output_dir,**config):
+
     results = trainer.validate(dataset)
 
-    return results
-
-
-def show_results(results,logger,is_torch_model,output_dir,**config):
-
-    if is_torch_model:
-        results = {f"{key.split('/')[1]}/{key.split('/')[0]}": val for key, val in results[0].items()}
-        logger.experiment.add_hparams(
+    is_neural_model = isinstance(trainer,SupervisedNeuralModelTrainer)
+    if is_neural_model:
+        trainer.logger.experiment.add_hparams(
             dict(
                 train_batch_size=config["train_batch_size"],
                 validation_batch_size=config["validation_batch_size"],
@@ -62,7 +63,8 @@ def show_results(results,logger,is_torch_model,output_dir,**config):
 
     with open(os.path.join(output_dir,"results.json"),"w") as f:
         json.dump(results,f,indent=4,separators=", ")
-    print(results)
+    
+    return results
 
 
 def main():
@@ -83,11 +85,11 @@ def main():
     dataset = prepare_data_for_training(tokenizer,directories["data"],is_torch_model,**config)
 
     # Train model
-    results, logger = train_model(features_extractor,main_model,dataset,output_dir,**config)
+    trainer = train_model(features_extractor,main_model,dataset,output_dir,**config)
 
     # Show results
-    show_results(results,logger,is_torch_model,output_dir,**config)
-
+    results = validate_model_and_save_results(trainer,dataset,output_dir,**config)
+    print(results)
 
 
 

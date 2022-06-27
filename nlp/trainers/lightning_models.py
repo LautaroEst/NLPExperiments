@@ -57,7 +57,7 @@ class ClassificationModel(SequenceEstimatorModel):
         output = self.main_model(features)
         y_hat = output["predictions"].cpu().detach().numpy()
         y_true = batch["label"].cpu().detach().numpy()
-        loss = F.nll_loss(output["predictions"],batch["label"])
+        loss = F.nll_loss(output["log_probs"],batch["label"])
         self.log_dict({
             "loss/train": loss.item(),
             "accuracy/train": accuracy_score(y_true,y_hat),

@@ -8,10 +8,19 @@ from .lightning_models import ClassificationModel, RegressionModel, TBLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 
 
-class SupervisedNeuralModelTrainer(pl.Trainer):
+class SupervisedModelTrainer:
+
+    def init_extractor_main_model_config_params(self,extractor,main_model,**config_params):
+        self.config_params = config_params
+        self._extractor = extractor
+        self._main_model = main_model
+
+
+
+class SupervisedNeuralModelTrainer(pl.Trainer, SupervisedModelTrainer):
 
     def __init__(self,extractor,main_model,**config_params):
-        self.config_params = config_params      
+        super().init_extractor_main_model_config_params(extractor,main_model,**config_params)
 
         # Define the model from the task
         if main_model.task == "classification":
@@ -62,9 +71,12 @@ class SupervisedNeuralModelTrainer(pl.Trainer):
             reverse=True
         )[0])
 
+        def parse_results(results):
+            return {f"{key.split('/')[1]}/{key.split('/')[0]}": val for key, val in results[0].items()}
+
         train_results = super().validate(self.full_model,data_module["train"],best_model_name,verbose=True)
         val_results = super().validate(self.full_model,data_module["validation"],best_model_name,verbose=True)
-        results = {**train_results, **val_results}
+        results = {**parse_results(train_results), **parse_results(val_results)}
         return results
 
 
@@ -74,34 +86,32 @@ class SupervisedNeuralModelTrainer(pl.Trainer):
 
 
     
-class SupervisedGenericMLModelTrainer:
+class SupervisedGenericMLModelTrainer(SupervisedModelTrainer):
 
     def __init__(self,extractor,main_model,**config_params):
-        self.config_params = config_params
-        self.extractor = extractor
-        self.main_model = main_model
+        super().init_extractor_main_model_config_params(extractor,main_model,**config_params)
 
 
     def fit(self,data_module):
         vectorized_dataset = {
-            "X": self.extractor(data_module["train"]),
+            "X": self._extractor(data_module["train"]),
             "y": np.array(data_module["train"]["label"])
         }
-        self.main_model.fit(
-            vectorized_dataset["train"]["X"],
-            vectorized_dataset["train"]["y"]
+        self._main_model.fit(
+            vectorized_dataset["X"],
+            vectorized_dataset["y"]
         )
 
     def validate(self,data_module):
         vectorized_dataset = {}
         for split in ["train", "validation"]:
             vectorized_dataset[split] = {
-                "X": self.extractor(data_module[split]),
+                "X": self._extractor(data_module[split]),
                 "y": np.array(data_module[split]["label"])
             }
         
         y_preds = {
-            split: self.main_model.predict(vectorized_dataset[split]["X"]) \
+            split: self._main_model(vectorized_dataset[split]["X"])["predictions"] \
             for split in ["train", "validation"]
         }
 
